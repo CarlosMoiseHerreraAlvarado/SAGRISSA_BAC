@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sagrisa.Application\Sagrisa.Application.csproj" />
+    <ProjectReference Include="..\Sagrisa.Infrastructure\Sagrisa.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -108,6 +108,10 @@ El recorrido de las peticiones mantiene un orden unidireccional e inmutable para
 * `GET /api/pedidos` → Historial generalizado y consolidado de las órdenes de pedidos procesadas en el canal.
 * `GET /api/pedidos/{numero}` → Desglose completo de ítems, totales, metadatos y estados específicos de un pedido consultado por su número correlativo único.
 
+### 🏷️ Catálogo de Productos
+* `GET /api/productos` → Lista completa de productos disponibles en catálogo.
+* `GET /api/productos/{codigo}` → Información detallada de un producto por su código.
+
 ---
 
 ## 🛠️ Stack Tecnológico Integrado

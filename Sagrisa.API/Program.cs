@@ -1,44 +1,37 @@
+using Sagrisa.Infrastructure;
+
+// Este es el punto de entrada de la aplicacion.
+// Se encarga de configurar todos los servicios que la API necesita para funcionar.
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Registra los controladores para que la API pueda recibir y responder peticiones HTTP.
+builder.Services.AddControllers();
+
+// Activa Swagger, que es la herramienta que muestra la documentacion de los endpoints en el navegador.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Registra todos los repositorios mock de Infrastructure.
+// Aqui se conectan las interfaces (IUsuarioRepository, IClienteRepository, etc.)
+// con sus implementaciones concretas (UsuarioRepository, ClienteRepository, etc.).
+// Cuando se conecte la base de datos real, solo hay que cambiar esta linea o el contenido de AddInfrastructure.
+builder.Services.AddInfrastructure(builder.Configuration);
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// En modo desarrollo, se muestra Swagger para poder probar los endpoints desde el navegador.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Redirige todas las peticiones HTTP a HTTPS por seguridad.
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// Esto le dice a la API que use los controladores para manejar las peticiones.
+// Sin esto, los controladores no responden ninguna ruta.
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
