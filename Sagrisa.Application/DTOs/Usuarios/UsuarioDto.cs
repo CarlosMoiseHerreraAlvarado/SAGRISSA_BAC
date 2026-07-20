@@ -15,7 +15,7 @@ namespace Sagrisa.Application.DTOs.Usuarios
         public string CodVendedor { get; set; }
         public string Cargo { get; set; }
         public string email { get; set; }
-        public bool Cambiado { get; set; }
+        public string Cambiado { get; set; }
         public string Dui { get; set; }
         public string DocPersonal { get; set; }
         public string Token { get; set; }

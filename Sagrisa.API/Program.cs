@@ -1,3 +1,4 @@
+using Sagrisa.API.Middlewares;
 using Sagrisa.Infrastructure;
 
 // Este es el punto de entrada de la aplicacion.
@@ -19,6 +20,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+// Middleware global de excepciones — debe ir primero para capturar errores de los demas middlewares.
+app.UseMiddleware<ExceptionMiddleware>();
 
 // En modo desarrollo, se muestra Swagger para poder probar los endpoints desde el navegador.
 if (app.Environment.IsDevelopment())
