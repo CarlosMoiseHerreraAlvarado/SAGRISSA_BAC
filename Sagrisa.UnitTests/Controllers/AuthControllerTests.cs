@@ -25,6 +25,7 @@ namespace Sagrisa.UnitTests.Controllers
             var usuario = new Usuario
             {
                 CodVendedor = "GTCMARCOS",
+                Dui = "00123456-7",
                 Pin = "77777",
                 Nombre = "Marcos Antonio Gutierrez",
                 Cargo = "Vendedor",
@@ -32,10 +33,10 @@ namespace Sagrisa.UnitTests.Controllers
             };
 
             _usuarioRepositoryMock
-                .Setup(r => r.ObtenerPorCodVendedorAsync("GTCMARCOS", It.IsAny<CancellationToken>()))
+                .Setup(r => r.ObtenerPorDuiAsync("00123456-7", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(usuario);
 
-            var request = new LoginRequest { Usuario = "GTCMARCOS", Pin = "77777" };
+            var request = new LoginRequest { Dui = "00123456-7", Pin = "77777" };
 
             // Act
             var resultado = await _controller.Login(request, CancellationToken.None);
@@ -55,15 +56,16 @@ namespace Sagrisa.UnitTests.Controllers
             var usuario = new Usuario
             {
                 CodVendedor = "GTCMARCOS",
+                Dui = "00123456-7",
                 Pin = "77777",
                 Nombre = "Marcos Antonio Gutierrez"
             };
 
             _usuarioRepositoryMock
-                .Setup(r => r.ObtenerPorCodVendedorAsync("GTCMARCOS", It.IsAny<CancellationToken>()))
+                .Setup(r => r.ObtenerPorDuiAsync("00123456-7", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(usuario);
 
-            var request = new LoginRequest { Usuario = "GTCMARCOS", Pin = "00000" };
+            var request = new LoginRequest { Dui = "00123456-7", Pin = "00000" };
 
             // Act
             var resultado = await _controller.Login(request, CancellationToken.None);
@@ -77,10 +79,10 @@ namespace Sagrisa.UnitTests.Controllers
         {
             // Arrange
             _usuarioRepositoryMock
-                .Setup(r => r.ObtenerPorCodVendedorAsync("NOEXISTE", It.IsAny<CancellationToken>()))
+                .Setup(r => r.ObtenerPorDuiAsync("99999999-9", It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Usuario?)null);
 
-            var request = new LoginRequest { Usuario = "NOEXISTE", Pin = "12345" };
+            var request = new LoginRequest { Dui = "99999999-9", Pin = "12345" };
 
             // Act
             var resultado = await _controller.Login(request, CancellationToken.None);
@@ -93,9 +95,9 @@ namespace Sagrisa.UnitTests.Controllers
         public async Task Login_ModeloInvalido_DevuelveBadRequest()
         {
             // Arrange
-            _controller.ModelState.AddModelError("Usuario", "El usuario es obligatorio.");
+            _controller.ModelState.AddModelError("Dui", "El DUI es obligatorio.");
 
-            var request = new LoginRequest { Usuario = "", Pin = "" };
+            var request = new LoginRequest { Dui = "", Pin = "" };
 
             // Act
             var resultado = await _controller.Login(request, CancellationToken.None);
@@ -111,15 +113,16 @@ namespace Sagrisa.UnitTests.Controllers
             var usuario = new Usuario
             {
                 CodVendedor = "GTCMARCOS",
+                Dui = "00123456-7",
                 Pin = "77777     ",
                 Nombre = "Marcos Antonio Gutierrez"
             };
 
             _usuarioRepositoryMock
-                .Setup(r => r.ObtenerPorCodVendedorAsync("GTCMARCOS", It.IsAny<CancellationToken>()))
+                .Setup(r => r.ObtenerPorDuiAsync("00123456-7", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(usuario);
 
-            var request = new LoginRequest { Usuario = "GTCMARCOS", Pin = "77777" };
+            var request = new LoginRequest { Dui = "00123456-7", Pin = "77777" };
 
             // Act
             var resultado = await _controller.Login(request, CancellationToken.None);

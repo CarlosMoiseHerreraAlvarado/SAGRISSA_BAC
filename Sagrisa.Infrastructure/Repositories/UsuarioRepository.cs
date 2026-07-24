@@ -83,5 +83,15 @@ namespace Sagrisa.Infrastructure.Repositories
 
             return Task.FromResult(usuario);
         }
+
+        // Busca un usuario por su DUI.
+        // Se usa en el login: el frontend envia DUI + PIN.
+        public Task<Usuario?> ObtenerPorDuiAsync(string dui, CancellationToken cancellationToken)
+        {
+            var usuario = _usuarios.FirstOrDefault(u =>
+                u.Dui.Equals(dui, StringComparison.OrdinalIgnoreCase));
+
+            return Task.FromResult(usuario);
+        }
     }
 }

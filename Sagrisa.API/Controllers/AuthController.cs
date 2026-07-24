@@ -4,9 +4,11 @@ using Sagrisa.Application.Interfaces.Repositories;
 
 namespace Sagrisa.API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    // Controlador de autenticacion.
+    // Ruta base: /api/auth
+    // Permite iniciar sesion enviando DUI y PIN.
+    [Route("auth")]
+    public class AuthController : SagrisaBaseController
     {
         private readonly IUsuarioRepository _usuarioRepository;
 
@@ -15,6 +17,8 @@ namespace Sagrisa.API.Controllers
             _usuarioRepository = usuarioRepository;
         }
 
+        // POST /api/auth/login
+        // Recibe DUI y PIN, valida las credenciales y devuelve los datos del usuario con un token mock.
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
@@ -23,17 +27,17 @@ namespace Sagrisa.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var usuario = await _usuarioRepository.ObtenerPorCodVendedorAsync(request.Usuario, cancellationToken);
+            var usuario = await _usuarioRepository.ObtenerPorDuiAsync(request.Dui, cancellationToken);
 
             if (usuario is null)
             {
-                return Unauthorized(new { mensaje = "Usuario o PIN incorrectos." });
+                return Unauthorized(new { success = false, message = "DUI o PIN incorrectos." });
             }
 
             var pinLimpio = usuario.Pin?.Trim();
             if (pinLimpio != request.Pin)
             {
-                return Unauthorized(new { mensaje = "Usuario o PIN incorrectos." });
+                return Unauthorized(new { success = false, message = "DUI o PIN incorrectos." });
             }
 
             var response = new LoginResponse

@@ -9,6 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Registra los controladores para que la API pueda recibir y responder peticiones HTTP.
 builder.Services.AddControllers();
 
+// Configura CORS para permitir la PWA en desarrollo (Vite corre en localhost:5173).
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5201")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // Activa Swagger, que es la herramienta que muestra la documentacion de los endpoints en el navegador.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -30,6 +41,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Aplica la politica CORS configurada arriba.
+app.UseCors();
 
 // Redirige todas las peticiones HTTP a HTTPS por seguridad.
 app.UseHttpsRedirection();

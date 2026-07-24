@@ -46,8 +46,8 @@ namespace Sagrisa.API.Middlewares
 
             var respuesta = new
             {
-                codigo = (int)statusCode,
-                mensaje
+                success = false,
+                message = mensaje
             };
 
             var json = JsonSerializer.Serialize(respuesta, new JsonSerializerOptions

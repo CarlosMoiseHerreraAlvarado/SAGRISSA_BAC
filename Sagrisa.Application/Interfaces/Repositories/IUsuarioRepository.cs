@@ -13,5 +13,9 @@ namespace Sagrisa.Application.Interfaces.Repositories
         // Busca un usuario por su codigo de vendedor.
         // Devuelve null si no lo encuentra.
         Task<Usuario?> ObtenerPorCodVendedorAsync(string codVendedor, CancellationToken cancellationToken);
+
+        // Busca un usuario por su DUI.
+        // Se usa en el login: el frontend envia DUI + PIN.
+        Task<Usuario?> ObtenerPorDuiAsync(string dui, CancellationToken cancellationToken);
     }
 }
