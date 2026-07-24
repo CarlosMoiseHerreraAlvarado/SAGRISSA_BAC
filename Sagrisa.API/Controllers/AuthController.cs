@@ -7,7 +7,7 @@ namespace Sagrisa.API.Controllers
     // Controlador de autenticacion.
     // Ruta base: /api/auth
     // Permite iniciar sesion enviando DUI y PIN.
-    [Route("auth")]
+    [Route("api/auth")]
     public class AuthController : SagrisaBaseController
     {
         private readonly IUsuarioRepository _usuarioRepository;

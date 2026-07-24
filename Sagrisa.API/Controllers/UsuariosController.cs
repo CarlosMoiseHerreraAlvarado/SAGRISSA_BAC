@@ -7,7 +7,7 @@ namespace Sagrisa.API.Controllers
     // Controlador que maneja las peticiones relacionadas con usuarios.
     // Ruta base: /api/usuarios
     // Por ahora solo devuelve la lista de usuarios mock.
-    [Route("usuarios")]
+    [Route("api/usuarios")]
     public class UsuariosController : SagrisaBaseController
     {
         private readonly IUsuarioRepository _usuarioRepository;

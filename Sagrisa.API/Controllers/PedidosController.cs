@@ -7,7 +7,7 @@ namespace Sagrisa.API.Controllers
     // Controlador que maneja las peticiones relacionadas con pedidos.
     // Ruta base: /api/pedidos
     // Permite listar todos los pedidos o buscar uno especifico con su detalle completo.
-    [Route("pedidos")]
+    [Route("api/pedidos")]
     public class PedidosController : SagrisaBaseController
     {
         private readonly IPedidoRepository _pedidoRepository;
