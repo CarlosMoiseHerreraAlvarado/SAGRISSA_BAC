@@ -8,6 +8,7 @@ namespace Sagrisa.API.Controllers
     // Ruta base: /api/productos
     // Permite listar todos los productos o buscar uno especifico por codigo.
     [Route("api/productos")]
+    [Route("productos")]
     public class ProductosController : SagrisaBaseController
     {
         private readonly IProductoRepository _productoRepository;

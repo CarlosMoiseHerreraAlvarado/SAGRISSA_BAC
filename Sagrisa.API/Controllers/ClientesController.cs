@@ -8,6 +8,7 @@ namespace Sagrisa.API.Controllers
     // Ruta base: /api/clientes
     // Permite listar todos los clientes, filtrar por vendedor, o buscar uno especifico por codigo.
     [Route("api/clientes")]
+    [Route("clientes")]
     public class ClientesController : SagrisaBaseController
     {
         private readonly IClienteRepository _clienteRepository;

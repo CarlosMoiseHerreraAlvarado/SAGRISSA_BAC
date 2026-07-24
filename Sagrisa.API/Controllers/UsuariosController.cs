@@ -8,6 +8,7 @@ namespace Sagrisa.API.Controllers
     // Ruta base: /api/usuarios
     // Por ahora solo devuelve la lista de usuarios mock.
     [Route("api/usuarios")]
+    [Route("usuarios")]
     public class UsuariosController : SagrisaBaseController
     {
         private readonly IUsuarioRepository _usuarioRepository;
