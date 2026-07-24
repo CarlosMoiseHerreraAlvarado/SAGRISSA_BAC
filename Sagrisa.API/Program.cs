@@ -9,12 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Registra los controladores para que la API pueda recibir y responder peticiones HTTP.
 builder.Services.AddControllers();
 
-// Configura CORS para permitir la PWA en desarrollo (Vite corre en localhost:5173).
+// Configura CORS para permitir el frontend web/PWA en desarrollo y produccion.
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5201")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -25,22 +25,20 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Registra todos los repositorios mock de Infrastructure.
-// Aqui se conectan las interfaces (IUsuarioRepository, IClienteRepository, etc.)
-// con sus implementaciones concretas (UsuarioRepository, ClienteRepository, etc.).
-// Cuando se conecte la base de datos real, solo hay que cambiar esta linea o el contenido de AddInfrastructure.
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-// Middleware global de excepciones — debe ir primero para capturar errores de los demas middlewares.
+// Middleware global de excepciones.
 app.UseMiddleware<ExceptionMiddleware>();
 
-// En modo desarrollo, se muestra Swagger para poder probar los endpoints desde el navegador.
-if (app.Environment.IsDevelopment())
+// Habilita Swagger siempre (en desarrollo y produccion/Render) sirviendo en la raiz '/'
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SAGRISA API v1");
+    c.RoutePrefix = string.Empty; // Muestra Swagger al abrir la URL base de Render
+});
 
 // Aplica la politica CORS configurada arriba.
 app.UseCors();
