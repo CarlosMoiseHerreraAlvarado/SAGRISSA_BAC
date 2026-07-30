@@ -9,12 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Registra los controladores para que la API pueda recibir y responder peticiones HTTP.
 builder.Services.AddControllers();
 
-// Configura CORS para permitir la PWA en desarrollo (Vite corre en localhost:5173).
+// Configura CORS para permitir solicitudes desde cualquier origen (Frontend PWA en local o desplegado).
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5201")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -35,12 +35,9 @@ var app = builder.Build();
 // Middleware global de excepciones — debe ir primero para capturar errores de los demas middlewares.
 app.UseMiddleware<ExceptionMiddleware>();
 
-// En modo desarrollo, se muestra Swagger para poder probar los endpoints desde el navegador.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Habilitar Swagger siempre para facilitar pruebas en Render
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Aplica la politica CORS configurada arriba.
 app.UseCors();
