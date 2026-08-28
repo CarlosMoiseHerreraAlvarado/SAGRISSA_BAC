@@ -1,11 +1,9 @@
 using Sagrisa.Application.Interfaces.Repositories;
+using Sagrisa.Domain.Common;
 using Sagrisa.Domain.Entities;
 
 namespace Sagrisa.Infrastructure.Repositories
 {
-    // Repositorio mock de clientes.
-    // Contiene 5 clientes de ejemplo que cubren diferentes escenarios:
-    // clientes activos, inactivos y bloqueados, para poder probar todos los casos.
     public class ClienteRepository : IClienteRepository
     {
         private static readonly List<Cliente> _clientes =
@@ -17,6 +15,8 @@ namespace Sagrisa.Infrastructure.Repositories
                 Clase = "Mayorista",
                 Vendedor = "GTCMARCOS",
                 Ciudad = "San Salvador",
+                Direccion = "Calle Principal #123, San Salvador",
+                Telefono = "+503 2222-1111",
                 TPago = "Credito",
                 INACTIVE = 0,
                 HOLD = 0,
@@ -33,6 +33,8 @@ namespace Sagrisa.Infrastructure.Repositories
                 Clase = "Retail",
                 Vendedor = "GTCMARCOS",
                 Ciudad = "Santa Tecla",
+                Direccion = "Av. San Martin #45, Santa Tecla",
+                Telefono = "+503 2222-2222",
                 TPago = "Contado",
                 INACTIVE = 0,
                 HOLD = 0,
@@ -49,6 +51,8 @@ namespace Sagrisa.Infrastructure.Repositories
                 Clase = "Minorista",
                 Vendedor = "GTJUAN",
                 Ciudad = "San Miguel",
+                Direccion = "Carretera Panamericana Km 130",
+                Telefono = "+503 2660-3333",
                 TPago = "Credito",
                 INACTIVE = 1,
                 HOLD = 0,
@@ -65,6 +69,8 @@ namespace Sagrisa.Infrastructure.Repositories
                 Clase = "Mayorista",
                 Vendedor = "GTCMARCOS",
                 Ciudad = "Sonsonate",
+                Direccion = "Barrio El Centro, Sonsonate",
+                Telefono = "+503 2450-4444",
                 TPago = "Credito",
                 INACTIVE = 0,
                 HOLD = 1,
@@ -81,6 +87,8 @@ namespace Sagrisa.Infrastructure.Repositories
                 Clase = "Minorista",
                 Vendedor = "GTJUAN",
                 Ciudad = "Usulutan",
+                Direccion = "Plaza Central Local 4",
+                Telefono = "+503 2662-5555",
                 TPago = "Contado",
                 INACTIVE = 0,
                 HOLD = 0,
@@ -89,32 +97,98 @@ namespace Sagrisa.Infrastructure.Repositories
                 TotalDeuda = 300.00m,
                 SaldoCredito = 1200.00m,
                 Correo = "expres@correo.com"
+            },
+            new Cliente
+            {
+                CodCliente = "C006",
+                ProfileId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+                NomCliente = "Cliente Demo SAGRISA",
+                Dui = "00555555-5",
+                Clase = "Retail",
+                Vendedor = null,
+                Ciudad = "San Salvador",
+                Direccion = "Direccion demo",
+                Telefono = "+503 7000-0000",
+                TPago = "Contado",
+                INACTIVE = 0,
+                HOLD = 0,
+                LPrecios = "LP01",
+                MontoCredito = 2000.00m,
+                TotalDeuda = 0.00m,
+                SaldoCredito = 2000.00m,
+                Correo = "cliente.demo@sagrisa.com"
             }
         ];
 
-        // Devuelve todos los clientes de la lista mock.
-        public Task<IReadOnlyCollection<Cliente>> ObtenerTodosAsync(CancellationToken cancellationToken)
+        public Task<IReadOnlyCollection<Cliente>> ObtenerTodosAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IReadOnlyCollection<Cliente>>(_clientes);
         }
 
-        // Busca un cliente por su codigo exacto.
-        public Task<Cliente?> ObtenerPorCodigoAsync(string codigo, CancellationToken cancellationToken)
+        public Task<PagedResult<Cliente>> ObtenerPaginadoAsync(int pageNumber, int pageSize, string? vendedor, string? query, CancellationToken cancellationToken = default)
         {
+            var queryable = _clientes.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(vendedor))
+            {
+                queryable = queryable.Where(c => string.Equals(c.Vendedor, vendedor.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                var q = query.Trim();
+                queryable = queryable.Where(c =>
+                    (c.NomCliente != null && c.NomCliente.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (c.CodCliente != null && c.CodCliente.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (c.Ciudad != null && c.Ciudad.Contains(q, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            var totalCount = queryable.Count();
+            var items = queryable
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Task.FromResult(new PagedResult<Cliente>
+            {
+                Items = items,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            });
+        }
+
+        public Task<Cliente?> ObtenerPorCodigoAsync(string codigo, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(codigo)) return Task.FromResult<Cliente?>(null);
+
             var cliente = _clientes.FirstOrDefault(c =>
-                c.CodCliente.Equals(codigo, StringComparison.OrdinalIgnoreCase));
+                string.Equals(c.CodCliente, codigo.Trim(), StringComparison.OrdinalIgnoreCase));
 
             return Task.FromResult(cliente);
         }
 
-        // Filtra y devuelve solo los clientes asignados a un vendedor especifico.
-        public Task<IReadOnlyCollection<Cliente>> ObtenerPorVendedorAsync(string codVendedor, CancellationToken cancellationToken)
+        public Task<IReadOnlyCollection<Cliente>> ObtenerPorVendedorAsync(string codVendedor, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(codVendedor))
+                return Task.FromResult<IReadOnlyCollection<Cliente>>(Array.Empty<Cliente>());
+
             var clientes = _clientes
-                .Where(c => c.Vendedor.Equals(codVendedor, StringComparison.OrdinalIgnoreCase))
+                .Where(c => string.Equals(c.Vendedor, codVendedor.Trim(), StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             return Task.FromResult<IReadOnlyCollection<Cliente>>(clientes);
+        }
+
+        public Task<bool> ActualizarDeudaAsync(string codCliente, decimal montoPagado, CancellationToken cancellationToken = default)
+        {
+            var cliente = _clientes.FirstOrDefault(c => string.Equals(c.CodCliente, codCliente, StringComparison.OrdinalIgnoreCase));
+            if (cliente is null) return Task.FromResult(false);
+
+            cliente.TotalDeuda = Math.Max(0, cliente.TotalDeuda - montoPagado);
+            cliente.SaldoCredito = cliente.MontoCredito - cliente.TotalDeuda;
+
+            return Task.FromResult(true);
         }
     }
 }

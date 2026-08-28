@@ -1,19 +1,17 @@
 using System.Net;
 using System.Text.Json;
+using Sagrisa.Domain.Common;
 
 namespace Sagrisa.API.Middlewares
 {
-    // Middleware global que captura cualquier excepcion no controlada en los controladores.
-    // En lugar de que la API devuelva un 500 con stack trace (que es un riesgo de seguridad),
-    // devuelve un JSON con el codigo de error y un mensaje generico.
     public class ExceptionMiddleware
     {
-        private readonly RequestDelegate _siguiente;
+        private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionMiddleware> _logger;
 
-        public ExceptionMiddleware(RequestDelegate siguiente, ILogger<ExceptionMiddleware> logger)
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
         {
-            _siguiente = siguiente;
+            _next = next;
             _logger = logger;
         }
 
@@ -21,38 +19,37 @@ namespace Sagrisa.API.Middlewares
         {
             try
             {
-                await _siguiente(context);
+                await _next(context);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Excepcion no controlada: {Message}", ex.Message);
-                await ManejarExcepcionAsync(context, ex);
+                _logger.LogError(ex, "Excepción no controlada en la petición {Method} {Path}: {Message}",
+                    context.Request.Method, context.Request.Path, ex.Message);
+
+                await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static async Task ManejarExcepcionAsync(HttpContext context, Exception ex)
+        private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
             context.Response.ContentType = "application/json";
 
             var (statusCode, mensaje) = ex switch
             {
-                ArgumentException => (HttpStatusCode.BadRequest, "Solicitud invalida."),
-                KeyNotFoundException => (HttpStatusCode.NotFound, "Recurso no encontrado."),
-                UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "No autorizado."),
-                _ => (HttpStatusCode.InternalServerError, "Error interno del servidor.")
+                ArgumentException => (HttpStatusCode.BadRequest, ex.Message),
+                KeyNotFoundException => (HttpStatusCode.NotFound, ex.Message),
+                UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Acceso no autorizado."),
+                _ => (HttpStatusCode.InternalServerError, "Ha ocurrido un error interno en el servidor. Por favor intente más tarde.")
             };
 
             context.Response.StatusCode = (int)statusCode;
 
-            var respuesta = new
-            {
-                success = false,
-                message = mensaje
-            };
+            var response = ApiResponse.Fail(mensaje, [ex.Message]);
 
-            var json = JsonSerializer.Serialize(respuesta, new JsonSerializerOptions
+            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = false
             });
 
             await context.Response.WriteAsync(json);

@@ -1,11 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Sagrisa.Domain.Common;
 
 namespace Sagrisa.API.Controllers
 {
-    // Controlador base del que heredan todos los demas controladores.
-    // Define la ruta base "api" y marca esta clase como un controlador de API.
-    // Todos los endpoints empezaran con /api/ seguido de la ruta de cada controlador.
     [ApiController]
-    [Route("api")]
-    public class SagrisaBaseController : ControllerBase { }
+    [Route("api/[controller]")]
+    public abstract class SagrisaBaseController : ControllerBase
+    {
+        protected string? CurrentUserDui => User.FindFirst("dui")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        protected string? CurrentUserRole => User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value;
+        protected string? CurrentUserCodVendedor => User.FindFirst("codVendedor")?.Value;
+        protected Guid? CurrentUserId => Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value, out var id) ? id : null;
+
+        protected IActionResult HandleResponse<T>(ApiResponse<T> response)
+        {
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+
+            if (response.Message.Contains("no encontrado", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(response);
+            }
+
+            if (response.Message.Contains("incorrectos", StringComparison.OrdinalIgnoreCase) ||
+                response.Message.Contains("no autorizado", StringComparison.OrdinalIgnoreCase))
+            {
+                return Unauthorized(response);
+            }
+
+            return BadRequest(response);
+        }
+
+        protected IActionResult HandleResponse(ApiResponse response)
+        {
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+
+            if (response.Message.Contains("no encontrado", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(response);
+            }
+
+            return BadRequest(response);
+        }
+    }
 }

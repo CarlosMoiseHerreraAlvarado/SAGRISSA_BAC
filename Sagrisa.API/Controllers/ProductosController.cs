@@ -1,65 +1,60 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sagrisa.Application.DTOs.Common;
 using Sagrisa.Application.DTOs.Productos;
-using Sagrisa.Application.Interfaces.Repositories;
+using Sagrisa.Application.Interfaces.Services;
+using Sagrisa.Domain.Common;
 
 namespace Sagrisa.API.Controllers
 {
-    // Controlador que maneja las peticiones relacionadas con productos.
-    // Ruta base: /api/productos
-    // Permite listar todos los productos o buscar uno especifico por codigo.
-    [Route("api/productos")]
-    [Route("productos")]
+    [Authorize]
+    [Route("api/[controller]")]
     public class ProductosController : SagrisaBaseController
     {
-        private readonly IProductoRepository _productoRepository;
+        private readonly IProductoService _productoService;
 
-        public ProductosController(IProductoRepository productoRepository)
+        public ProductosController(IProductoService productoService)
         {
-            _productoRepository = productoRepository;
+            _productoService = productoService;
         }
 
-        // GET /api/productos
-        // Devuelve la lista completa de productos del catalogo.
+        /// <summary>
+        /// Obtiene el catálogo de productos con paginación, filtros de familia y búsqueda de texto.
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerTodos(CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<ProductoDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObtenerPaginado(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? familia = null,
+            [FromQuery] bool? soloActivos = true,
+            [FromQuery] string? query = null,
+            CancellationToken cancellationToken = default)
         {
-            var productos = await _productoRepository.ObtenerTodosAsync(cancellationToken);
-
-            var resultado = productos.Select(p => new ProductoDto
-            {
-                Codigo = p.Codigo,
-                Nombre = p.Nombre,
-                Presentacion = p.Presentacion,
-                Precio = p.Precio,
-                Bodega = p.Bodega,
-                Activo = p.Activo
-            }).ToList();
-
-            return Ok(resultado);
+            var filter = new PaginationFilter(pageNumber, pageSize, query);
+            var result = await _productoService.ObtenerPaginadoAsync(filter, familia, soloActivos, cancellationToken);
+            return HandleResponse(result);
         }
 
-        // GET /api/productos/P001
-        // Devuelve un solo producto buscado por su codigo.
-        // Si no lo encuentra, devuelve un error 404.
+        /// <summary>
+        /// Obtiene los detalles de un producto por su código / SKU.
+        /// </summary>
         [HttpGet("{codigo}")]
+        [ProducesResponseType(typeof(ApiResponse<ProductoDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObtenerPorCodigo(string codigo, CancellationToken cancellationToken)
         {
-            var producto = await _productoRepository.ObtenerPorCodigoAsync(codigo, cancellationToken);
-
-            if (producto is null)
-                return NotFound(new { Success = false, Message = $"Producto '{codigo}' no encontrado." });
-
-            var resultado = new ProductoDto
-            {
-                Codigo = producto.Codigo,
-                Nombre = producto.Nombre,
-                Presentacion = producto.Presentacion,
-                Precio = producto.Precio,
-                Bodega = producto.Bodega,
-                Activo = producto.Activo
-            };
-
-            return Ok(resultado);
+            var result = await _productoService.ObtenerPorCodigoAsync(codigo, cancellationToken);
+            return HandleResponse(result);
         }
+        [HttpPost]
+        [Authorize(Roles = "Admin,Gerente")]
+        public async Task<IActionResult> Crear([FromBody] ProductoUpsertDto request, CancellationToken cancellationToken)
+            => HandleResponse(await _productoService.CrearAsync(request, cancellationToken));
+
+        [HttpPut("{codigo}")]
+        [Authorize(Roles = "Admin,Gerente")]
+        public async Task<IActionResult> Actualizar(string codigo, [FromBody] ProductoUpsertDto request, CancellationToken cancellationToken)
+            => HandleResponse(await _productoService.ActualizarAsync(codigo, request, cancellationToken));
     }
 }

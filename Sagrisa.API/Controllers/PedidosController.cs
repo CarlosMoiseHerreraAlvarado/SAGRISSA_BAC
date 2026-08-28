@@ -1,120 +1,73 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sagrisa.Application.DTOs.Common;
 using Sagrisa.Application.DTOs.Pedidos;
-using Sagrisa.Application.Interfaces.Repositories;
+using Sagrisa.Application.Interfaces.Services;
+using Sagrisa.Domain.Common;
 
 namespace Sagrisa.API.Controllers
 {
-    // Controlador que maneja las peticiones relacionadas con pedidos.
-    // Ruta base: /api/pedidos
-    // Permite listar todos los pedidos o buscar uno especifico con su detalle completo.
-    [Route("api/pedidos")]
-    [Route("pedidos")]
+    [Authorize(Roles = "Cliente,Vendedor,Supervisor,Gerente,Director,Admin")]
+    [Route("api/[controller]")]
     public class PedidosController : SagrisaBaseController
     {
-        private readonly IPedidoRepository _pedidoRepository;
+        private readonly IPedidoService _pedidoService;
 
-        public PedidosController(IPedidoRepository pedidoRepository)
+        public PedidosController(IPedidoService pedidoService)
         {
-            _pedidoRepository = pedidoRepository;
+            _pedidoService = pedidoService;
         }
 
-        // GET /api/pedidos
-        // Devuelve el encabezado de todos los pedidos sin el detalle.
-        // Cada pedido muestra informacion general como cliente, vendedor, total, estado, etc.
+        /// <summary>
+        /// Obtiene el historial de pedidos con paginación y filtros por cliente o vendedor.
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerTodos(CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<PedidoEncabezadoDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObtenerPaginado(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? codVendedor = null,
+            [FromQuery] string? codCliente = null,
+            [FromQuery] string? query = null,
+            CancellationToken cancellationToken = default)
         {
-            var pedidos = await _pedidoRepository.ObtenerTodosAsync(cancellationToken);
+            var filter = new PaginationFilter(pageNumber, pageSize, query);
+            var result = await _pedidoService.ObtenerPaginadoParaUsuarioAsync(
+                filter, CurrentUserRole, CurrentUserDui, CurrentUserId, CurrentUserCodVendedor,
+                codCliente, cancellationToken);
 
-            var resultado = pedidos.Select(p => new PedidoEncabezadoDto
-            {
-                NumPedido = p.NumPedido,
-                CodCliente = p.CodCliente,
-                CodVendedor = p.CodVendedor,
-                Tpago = p.Tpago,
-                FechaPedido = p.FechaPedido.ToString("yyyy-MM-dd HH:mm:ss"),
-                FechaEntrega = p.FechaEntrega?.ToString("yyyy-MM-dd"),
-                PlazoEntregaPedido = p.PlazoEntregaPedido,
-                Observacion = p.Observacion,
-                TotalPedido = p.TotalPedido,
-                Pais = p.Pais,
-                IdDireccion = p.IdDireccion ?? 0,
-                EstCorr = p.EstCorr,
-                FechHoraInsert = p.FechHoraInsert,
-                Origen = p.Origen,
-                idBac = p.IdBac,
-                idClieCaf = p.IdClieCaf,
-                EstadoBac = p.EstadoBac,
-                orderCaf = p.OrderCaf,
-                estatus = p.Estatus,
-                NumFactura = p.NumFactura,
-                ErrCorreo = p.ErrCorreo
-            }).ToList();
-
-            return Ok(resultado);
+            return HandleResponse(result);
         }
 
-        // GET /api/pedidos/00012345
-        // Devuelve un pedido especifico con todo su detalle (encabezado + lineas de producto).
-        // El detalle viene embebido dentro de la respuesta, no es un endpoint aparte.
+        /// <summary>
+        /// Obtiene un pedido específico con todas sus líneas de detalle.
+        /// </summary>
         [HttpGet("{numero}")]
+        [ProducesResponseType(typeof(ApiResponse<PedidoDetalladoResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObtenerPorNumero(string numero, CancellationToken cancellationToken)
         {
-            var pedido = await _pedidoRepository.ObtenerPorNumeroAsync(numero, cancellationToken);
+            var result = await _pedidoService.ObtenerPorNumeroParaUsuarioAsync(numero, CurrentUserRole, CurrentUserDui, CurrentUserId, CurrentUserCodVendedor, cancellationToken);
+            return HandleResponse(result);
+        }
 
-            if (pedido is null)
-                return NotFound(new { Success = false, Message = $"Pedido '{numero}' no encontrado." });
-
-            // Se construye el encabezado del pedido.
-            var encabezado = new PedidoEncabezadoDto
+        /// <summary>
+        /// Registra un nuevo pedido comercial con sus líneas de detalle.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Vendedor,Admin")]
+        [ProducesResponseType(typeof(ApiResponse<PedidoDetalladoResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<PedidoDetalladoResponseDto>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CrearPedido([FromBody] CrearPedidoDto request, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
             {
-                NumPedido = pedido.NumPedido,
-                CodCliente = pedido.CodCliente,
-                CodVendedor = pedido.CodVendedor,
-                Tpago = pedido.Tpago,
-                FechaPedido = pedido.FechaPedido.ToString("yyyy-MM-dd HH:mm:ss"),
-                FechaEntrega = pedido.FechaEntrega?.ToString("yyyy-MM-dd"),
-                PlazoEntregaPedido = pedido.PlazoEntregaPedido,
-                Observacion = pedido.Observacion,
-                TotalPedido = pedido.TotalPedido,
-                Pais = pedido.Pais,
-                IdDireccion = pedido.IdDireccion ?? 0,
-                EstCorr = pedido.EstCorr,
-                FechHoraInsert = pedido.FechHoraInsert,
-                Origen = pedido.Origen,
-                idBac = pedido.IdBac,
-                idClieCaf = pedido.IdClieCaf,
-                EstadoBac = pedido.EstadoBac,
-                orderCaf = pedido.OrderCaf,
-                estatus = pedido.Estatus,
-                NumFactura = pedido.NumFactura,
-                ErrCorreo = pedido.ErrCorreo
-            };
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResponse<PedidoDetalladoResponseDto>.Fail("Datos de pedido inválidos.", errors));
+            }
 
-            // Se construye la lista de productos que componen el pedido.
-            var detalle = pedido.Detalles.Select(d => new PedidoDetalladoDto
-            {
-                NumPedido = d.NumPedido,
-                CodCliente = d.CodCliente,
-                CodProducto = d.CodProducto,
-                NomProducto = d.NomProducto,
-                Presentacion = d.Presentacion,
-                Cantidad = d.Cantidad,
-                PrecioUnitario = d.PrecioUnitario,
-                PrecioTotal = d.PrecioTotal,
-                CodVendedor = d.CodVendedor,
-                Bodega = d.Bodega,
-                Origen = d.Origen
-            }).ToList();
-
-            // Se arma la respuesta completa: encabezado mas sus lineas de detalle.
-            var respuesta = new PedidoDetalladoResponseDto
-            {
-                Encabezado = encabezado,
-                Detalle = detalle
-            };
-
-            return Ok(respuesta);
+            var result = await _pedidoService.CrearPedidoAsync(request, CurrentUserCodVendedor, cancellationToken);
+            return HandleResponse(result);
         }
     }
 }

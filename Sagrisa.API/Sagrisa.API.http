@@ -1,6 +1,97 @@
 @Sagrisa.API_HostAddress = http://localhost:5201
 
-GET {{Sagrisa.API_HostAddress}}/weatherforecast/
+### 1. Diagnóstico de API (Health Check & Test Probe)
+GET {{Sagrisa.API_HostAddress}}/health
 Accept: application/json
 
 ###
+GET {{Sagrisa.API_HostAddress}}/api/test
+Accept: application/json
+
+### 2. Autenticación (Login con DUI + PIN)
+# @name login
+POST {{Sagrisa.API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "dui": "00123456-7",
+  "pin": "77777"
+}
+
+### Extraer Token JWT
+@authToken = {{login.response.body.data.token}}
+
+### 3. Perfil de Usuario Autenticado (/api/auth/me)
+GET {{Sagrisa.API_HostAddress}}/api/auth/me
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 4. Catálogo de Clientes (Paginado & Búsqueda)
+GET {{Sagrisa.API_HostAddress}}/api/clientes?pageNumber=1&pageSize=10
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+###
+GET {{Sagrisa.API_HostAddress}}/api/clientes/C001
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 5. Catálogo de Productos (Paginado & Filtro Familia)
+GET {{Sagrisa.API_HostAddress}}/api/productos?pageNumber=1&pageSize=10&soloActivos=true
+Accept: application/json
+
+###
+GET {{Sagrisa.API_HostAddress}}/api/productos/P001
+Accept: application/json
+
+### 6. Módulo de Pedidos (Consulta & Creación)
+GET {{Sagrisa.API_HostAddress}}/api/pedidos?pageNumber=1&pageSize=10
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+###
+GET {{Sagrisa.API_HostAddress}}/api/pedidos/00012345
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### Crear Pedido Nuevo
+POST {{Sagrisa.API_HostAddress}}/api/pedidos
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "codCliente": "C001",
+  "codVendedor": "GTCMARCOS",
+  "tpago": "Credito",
+  "observacion": "Entrega express en sucursal",
+  "direccionEntrega": "Calle Principal #123, San Salvador",
+  "detalles": [
+    {
+      "codProducto": "P001",
+      "cantidad": 5,
+      "bodega": "B01"
+    },
+    {
+      "codProducto": "P002",
+      "cantidad": 10,
+      "bodega": "B01"
+    }
+  ]
+}
+
+### 7. Webhook de Supabase (Sincronización de Pedido)
+POST {{Sagrisa.API_HostAddress}}/api/webhooks/supabase/order-created
+X-Webhook-Secret: sagrissa-webhook-secret-2026
+Content-Type: application/json
+
+{
+  "type": "INSERT",
+  "table": "orders",
+  "schema": "public",
+  "record": {
+    "numPedido": "00012345",
+    "codCliente": "C001",
+    "codVendedor": "GTCMARCOS",
+    "totalPedido": 262.50
+  }
+}

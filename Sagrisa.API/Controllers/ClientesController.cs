@@ -1,85 +1,52 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sagrisa.Application.DTOs.Clientes;
-using Sagrisa.Application.Interfaces.Repositories;
+using Sagrisa.Application.DTOs.Common;
+using Sagrisa.Application.Interfaces.Services;
+using Sagrisa.Domain.Common;
 
 namespace Sagrisa.API.Controllers
 {
-    // Controlador que maneja las peticiones relacionadas con clientes.
-    // Ruta base: /api/clientes
-    // Permite listar todos los clientes, filtrar por vendedor, o buscar uno especifico por codigo.
-    [Route("api/clientes")]
-    [Route("clientes")]
+    [Authorize]
+    [Route("api/[controller]")]
     public class ClientesController : SagrisaBaseController
     {
-        private readonly IClienteRepository _clienteRepository;
+        private readonly IClienteService _clienteService;
 
-        public ClientesController(IClienteRepository clienteRepository)
+        public ClientesController(IClienteService clienteService)
         {
-            _clienteRepository = clienteRepository;
+            _clienteService = clienteService;
         }
 
-        // GET /api/clientes
-        // Devuelve todos los clientes, o solo los de un vendedor si se envia el parametro ?vendedor=GTCMARCOS
+        /// <summary>
+        /// Obtiene el catálogo de clientes con paginación y búsqueda.
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerTodos(
-            [FromQuery] string? vendedor,
-            CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<ClienteDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObtenerPaginado(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? vendedor = null,
+            [FromQuery] string? query = null,
+            CancellationToken cancellationToken = default)
         {
-            // Si se envia un vendedor, filtra solo los clientes de ese vendedor.
-            // Si no se envia, devuelve todos.
-            var clientes = string.IsNullOrWhiteSpace(vendedor)
-                ? await _clienteRepository.ObtenerTodosAsync(cancellationToken)
-                : await _clienteRepository.ObtenerPorVendedorAsync(vendedor, cancellationToken);
+            var filter = new PaginationFilter(pageNumber, pageSize, query);
+            var result = await _clienteService.ObtenerPaginadoParaUsuarioAsync(
+                filter, CurrentUserRole, CurrentUserDui, CurrentUserId, CurrentUserCodVendedor, cancellationToken);
 
-            var resultado = clientes.Select(c => new ClienteDto
-            {
-                CodCliente = c.CodCliente,
-                NomCliente = c.NomCliente,
-                Clase = c.Clase,
-                Vendedor = c.Vendedor,
-                Ciudad = c.Ciudad,
-                TPago = c.TPago,
-                INACTIVE = c.INACTIVE,
-                HOLD = c.HOLD,
-                LPrecios = c.LPrecios,
-                MontoCredito = c.MontoCredito,
-                TotalDeuda = c.TotalDeuda,
-                SaldoCredito = c.SaldoCredito,
-                Correo = c.Correo
-            }).ToList();
-
-            return Ok(resultado);
+            return HandleResponse(result);
         }
 
-        // GET /api/clientes/C001
-        // Devuelve un solo cliente buscado por su codigo.
-        // Si no lo encuentra, devuelve un error 404 con un mensaje claro.
+        /// <summary>
+        /// Obtiene un cliente por su código único de Dynamics GP.
+        /// </summary>
         [HttpGet("{codigo}")]
+        [ProducesResponseType(typeof(ApiResponse<ClienteDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObtenerPorCodigo(string codigo, CancellationToken cancellationToken)
         {
-            var cliente = await _clienteRepository.ObtenerPorCodigoAsync(codigo, cancellationToken);
-
-            if (cliente is null)
-                return NotFound(new { Success = false, Message = $"Cliente '{codigo}' no encontrado." });
-
-            var resultado = new ClienteDto
-            {
-                CodCliente = cliente.CodCliente,
-                NomCliente = cliente.NomCliente,
-                Clase = cliente.Clase,
-                Vendedor = cliente.Vendedor,
-                Ciudad = cliente.Ciudad,
-                TPago = cliente.TPago,
-                INACTIVE = cliente.INACTIVE,
-                HOLD = cliente.HOLD,
-                LPrecios = cliente.LPrecios,
-                MontoCredito = cliente.MontoCredito,
-                TotalDeuda = cliente.TotalDeuda,
-                SaldoCredito = cliente.SaldoCredito,
-                Correo = cliente.Correo
-            };
-
-            return Ok(resultado);
+            var result = await _clienteService.ObtenerPorCodigoParaUsuarioAsync(codigo, CurrentUserRole, CurrentUserDui, CurrentUserId, CurrentUserCodVendedor, cancellationToken);
+            return HandleResponse(result);
         }
     }
 }

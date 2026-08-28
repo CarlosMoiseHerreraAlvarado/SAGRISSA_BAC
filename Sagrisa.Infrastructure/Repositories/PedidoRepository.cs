@@ -1,44 +1,40 @@
 using Sagrisa.Application.Interfaces.Repositories;
+using Sagrisa.Domain.Common;
 using Sagrisa.Domain.Entities;
+using Sagrisa.Domain.Enums;
 
 namespace Sagrisa.Infrastructure.Repositories
 {
-    // Repositorio mock de pedidos.
-    // Contiene 3 pedidos de ejemplo con su detalle embebido.
-    // Cada pedido tiene un不同的 estado, origen y cantidad de productos para probar distintos escenarios.
-    // Los campos como IdBac, EstadoBac, orderCaf, idClieCaf se dejan vacios porque su uso esta pendiente.
     public class PedidoRepository : IPedidoRepository
     {
         private static readonly List<Pedido> _pedidos =
         [
             new Pedido
             {
-                // Pedido 1 - Credito, origen APP, estado Activo, 2 productos
+                Id = Guid.Parse("11111111-aaaa-aaaa-aaaa-111111111111"),
                 NumPedido = "00012345",
                 CodCliente = "C001",
                 CodVendedor = "GTCMARCOS",
                 Tpago = "Credito",
-                FechaPedido = new DateTime(2026, 7, 15, 10, 30, 0),
-                FechaEntrega = new DateTime(2026, 7, 20),
+                FechaPedido = new DateTime(2026, 7, 15, 10, 30, 0, DateTimeKind.Utc),
+                FechaEntrega = new DateTime(2026, 7, 20, 0, 0, 0, DateTimeKind.Utc),
                 PlazoEntregaPedido = 5,
                 Observacion = "Pedido de prueba - entrega en bodega",
                 TotalPedido = 262.50m,
                 Pais = "SV",
                 IdDireccion = 1,
+                DireccionEntrega = "Calle Principal #123, San Salvador",
+                Status = OrderStatus.Approved,
                 EstCorr = "A",
-                FechHoraInsert = new DateTime(2026, 7, 15, 10, 30, 0),
-                Origen = "APP",
-                IdBac = "",
-                IdClieCaf = "",
-                EstadoBac = "",
-                OrderCaf = "",
+                FechHoraInsert = new DateTime(2026, 7, 15, 10, 30, 0, DateTimeKind.Utc),
+                Origen = "PWA",
                 Estatus = "Activo",
-                NumFactura = "",
-                ErrCorreo = "",
                 Detalles =
                 [
                     new PedidoDetalle
                     {
+                        Id = Guid.NewGuid(),
+                        OrderId = Guid.Parse("11111111-aaaa-aaaa-aaaa-111111111111"),
                         NumPedido = "00012345",
                         CodCliente = "C001",
                         CodProducto = "P001",
@@ -49,10 +45,12 @@ namespace Sagrisa.Infrastructure.Repositories
                         PrecioTotal = 157.50m,
                         CodVendedor = "GTCMARCOS",
                         Bodega = "B01",
-                        Origen = "APP"
+                        Origen = "PWA"
                     },
                     new PedidoDetalle
                     {
+                        Id = Guid.NewGuid(),
+                        OrderId = Guid.Parse("11111111-aaaa-aaaa-aaaa-111111111111"),
                         NumPedido = "00012345",
                         CodCliente = "C001",
                         CodProducto = "P002",
@@ -63,38 +61,37 @@ namespace Sagrisa.Infrastructure.Repositories
                         PrecioTotal = 105.00m,
                         CodVendedor = "GTCMARCOS",
                         Bodega = "B01",
-                        Origen = "APP"
+                        Origen = "PWA"
                     }
                 ]
             },
             new Pedido
             {
-                // Pedido 2 - Contado, origen LEGACY, estado Procesado, 3 productos, con factura
+                Id = Guid.Parse("22222222-bbbb-bbbb-bbbb-222222222222"),
                 NumPedido = "00012346",
                 CodCliente = "C002",
                 CodVendedor = "GTCMARCOS",
                 Tpago = "Contado",
-                FechaPedido = new DateTime(2026, 7, 16, 14, 0, 0),
-                FechaEntrega = new DateTime(2026, 7, 18),
+                FechaPedido = new DateTime(2026, 7, 16, 14, 0, 0, DateTimeKind.Utc),
+                FechaEntrega = new DateTime(2026, 7, 18, 0, 0, 0, DateTimeKind.Utc),
                 PlazoEntregaPedido = 2,
                 Observacion = "Entrega en tienda principal",
                 TotalPedido = 787.50m,
                 Pais = "SV",
                 IdDireccion = 2,
+                DireccionEntrega = "Av. San Martin #45, Santa Tecla",
+                Status = OrderStatus.Fulfilled,
                 EstCorr = "E",
-                FechHoraInsert = new DateTime(2026, 7, 16, 14, 0, 0),
-                Origen = "LEGACY",
-                IdBac = "",
-                IdClieCaf = "",
-                EstadoBac = "",
-                OrderCaf = "",
+                FechHoraInsert = new DateTime(2026, 7, 16, 14, 0, 0, DateTimeKind.Utc),
+                Origen = "PWA",
                 Estatus = "Procesado",
                 NumFactura = "FAC-001",
-                ErrCorreo = "",
                 Detalles =
                 [
                     new PedidoDetalle
                     {
+                        Id = Guid.NewGuid(),
+                        OrderId = Guid.Parse("22222222-bbbb-bbbb-bbbb-222222222222"),
                         NumPedido = "00012346",
                         CodCliente = "C002",
                         CodProducto = "P003",
@@ -105,10 +102,12 @@ namespace Sagrisa.Infrastructure.Repositories
                         PrecioTotal = 437.50m,
                         CodVendedor = "GTCMARCOS",
                         Bodega = "B02",
-                        Origen = "LEGACY"
+                        Origen = "PWA"
                     },
                     new PedidoDetalle
                     {
+                        Id = Guid.NewGuid(),
+                        OrderId = Guid.Parse("22222222-bbbb-bbbb-bbbb-222222222222"),
                         NumPedido = "00012346",
                         CodCliente = "C002",
                         CodProducto = "P001",
@@ -119,81 +118,90 @@ namespace Sagrisa.Infrastructure.Repositories
                         PrecioTotal = 210.00m,
                         CodVendedor = "GTCMARCOS",
                         Bodega = "B02",
-                        Origen = "LEGACY"
-                    },
-                    new PedidoDetalle
-                    {
-                        NumPedido = "00012346",
-                        CodCliente = "C002",
-                        CodProducto = "P004",
-                        NomProducto = "Jabon en Barra",
-                        Presentacion = "Unidad",
-                        Cantidad = 25,
-                        PrecioUnitario = 5.78m,
-                        PrecioTotal = 144.50m,
-                        CodVendedor = "GTCMARCOS",
-                        Bodega = "B02",
-                        Origen = "LEGACY"
-                    }
-                ]
-            },
-            new Pedido
-            {
-                // Pedido 3 - Contado, origen APP, estado Pendiente, 1 producto, sin direccion
-                NumPedido = "00012347",
-                CodCliente = "C005",
-                CodVendedor = "GTJUAN",
-                Tpago = "Contado",
-                FechaPedido = new DateTime(2026, 7, 17, 9, 15, 0),
-                FechaEntrega = new DateTime(2026, 7, 22),
-                PlazoEntregaPedido = 5,
-                Observacion = "",
-                TotalPedido = 52.50m,
-                Pais = "SV",
-                IdDireccion = null,
-                EstCorr = "P",
-                FechHoraInsert = new DateTime(2026, 7, 17, 9, 15, 0),
-                Origen = "APP",
-                IdBac = "",
-                IdClieCaf = "",
-                EstadoBac = "",
-                OrderCaf = "",
-                Estatus = "Pendiente",
-                NumFactura = "",
-                ErrCorreo = "",
-                Detalles =
-                [
-                    new PedidoDetalle
-                    {
-                        NumPedido = "00012347",
-                        CodCliente = "C005",
-                        CodProducto = "P002",
-                        NomProducto = "Arroz Premium 5lb",
-                        Presentacion = "Bolsa",
-                        Cantidad = 5,
-                        PrecioUnitario = 10.50m,
-                        PrecioTotal = 52.50m,
-                        CodVendedor = "GTJUAN",
-                        Bodega = "B01",
-                        Origen = "APP"
+                        Origen = "PWA"
                     }
                 ]
             }
         ];
 
-        // Devuelve todos los pedidos de la lista mock.
-        public Task<IReadOnlyCollection<Pedido>> ObtenerTodosAsync(CancellationToken cancellationToken)
+        public Task<IReadOnlyCollection<Pedido>> ObtenerTodosAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IReadOnlyCollection<Pedido>>(_pedidos);
         }
 
-        // Busca un pedido por su numero e incluye el detalle embebido.
-        public Task<Pedido?> ObtenerPorNumeroAsync(string numero, CancellationToken cancellationToken)
+        public Task<PagedResult<Pedido>> ObtenerPaginadoAsync(int pageNumber, int pageSize, string? codVendedor, string? codCliente, CancellationToken cancellationToken = default)
         {
+            var queryable = _pedidos.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(codVendedor))
+            {
+                queryable = queryable.Where(p => string.Equals(p.CodVendedor, codVendedor.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(codCliente))
+            {
+                queryable = queryable.Where(p => string.Equals(p.CodCliente, codCliente.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            var totalCount = queryable.Count();
+            var items = queryable
+                .OrderByDescending(p => p.FechaPedido)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Task.FromResult(new PagedResult<Pedido>
+            {
+                Items = items,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            });
+        }
+
+        public Task<Pedido?> ObtenerPorNumeroAsync(string numero, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(numero)) return Task.FromResult<Pedido?>(null);
+
             var pedido = _pedidos.FirstOrDefault(p =>
-                p.NumPedido.Equals(numero, StringComparison.OrdinalIgnoreCase));
+                string.Equals(p.NumPedido, numero.Trim(), StringComparison.OrdinalIgnoreCase));
 
             return Task.FromResult(pedido);
+        }
+
+        public Task<Pedido?> ObtenerPorIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var pedido = _pedidos.FirstOrDefault(p => p.Id == id);
+            return Task.FromResult(pedido);
+        }
+
+        public Task<Pedido> CrearAsync(Pedido pedido, CancellationToken cancellationToken = default)
+        {
+            _pedidos.Insert(0, pedido);
+            return Task.FromResult(pedido);
+        }
+
+        public Task<bool> ActualizarEstadoAsync(string numero, string estatus, string? numFactura, CancellationToken cancellationToken = default)
+        {
+            var pedido = _pedidos.FirstOrDefault(p => string.Equals(p.NumPedido, numero.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (pedido is null) return Task.FromResult(false);
+
+            pedido.Estatus = estatus;
+            pedido.Status = estatus.Trim().ToLowerInvariant() switch
+            {
+                "aprobado" or "approved" => OrderStatus.Approved,
+                "rechazado" or "rejected" or "anulado" => OrderStatus.Rejected,
+                "procesado" or "procesado_erp" or "facturado" => OrderStatus.Fulfilled,
+                "pendiente" or "pending" => OrderStatus.PendingApproval,
+                _ => pedido.Status
+            };
+            if (!string.IsNullOrEmpty(numFactura))
+            {
+                pedido.NumFactura = numFactura;
+            }
+            pedido.UpdatedAt = DateTime.UtcNow;
+
+            return Task.FromResult(true);
         }
     }
 }
