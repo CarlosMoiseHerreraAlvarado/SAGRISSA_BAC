@@ -236,6 +236,7 @@ public sealed class SagrisaDbContext : DbContext
         entity.ToTable("aprobaciones");
         entity.HasKey(x => x.Id);
         entity.Property(x => x.Id).HasColumnName("id");
+        entity.Property(x => x.NumPedido).HasColumnName("num_pedido");
         entity.Property(x => x.CodCliente).HasColumnName("cod_cliente").IsRequired();
         entity.Property(x => x.CodVendedor).HasColumnName("cod_vendedor");
         entity.Property(x => x.Monto).HasColumnName("monto").HasPrecision(18, 2);
