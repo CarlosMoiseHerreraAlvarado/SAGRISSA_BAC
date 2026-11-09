@@ -41,7 +41,11 @@ public sealed class AccountsController(
 
     [HttpPost("statement/email")]
     public IActionResult EnviarPorEmail([FromBody] SendStatementRequest request)
-        => Ok(new { success = true, message = string.IsNullOrWhiteSpace(request.Email) ? "Estado de cuenta generado." : $"Estado de cuenta preparado para {request.Email}." });
+        => StatusCode(StatusCodes.Status501NotImplemented, new
+        {
+            success = false,
+            message = "El envío de estados de cuenta por correo todavía no está configurado."
+        });
 
     [HttpGet("statement/pdf")]
     public async Task<IActionResult> DescargarEstadoCuenta([FromQuery] string? codCliente = null, CancellationToken cancellationToken = default)

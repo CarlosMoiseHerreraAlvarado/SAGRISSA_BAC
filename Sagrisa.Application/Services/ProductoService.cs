@@ -84,12 +84,19 @@ namespace Sagrisa.Application.Services
 
         private static Producto ToEntity(ProductoUpsertDto request) => new()
         {
-            Id = Guid.NewGuid(), Codigo = request.Codigo.Trim(), Nombre = request.Nombre.Trim(), Descripcion = request.Descripcion,
+            Id = Guid.NewGuid(),
+            Codigo = request.Codigo.Trim(),
+            Nombre = request.Nombre.Trim(),
+            Descripcion = request.Descripcion,
             Familia = string.IsNullOrWhiteSpace(request.Familia) ? "General" : request.Familia.Trim(),
+            Division = string.IsNullOrWhiteSpace(request.Division) ? null : request.Division.Trim(),
             Presentacion = string.IsNullOrWhiteSpace(request.Presentacion) ? "Unidad" : request.Presentacion.Trim(),
-            Precio = request.Precio, Stock = request.Stock,
-            Bodega = string.IsNullOrWhiteSpace(request.Bodega) ? "Bodega Central" : request.Bodega.Trim(), Activo = request.Activo
+            Precio = request.Precio,
+            Stock = request.Stock,
+            Bodega = string.IsNullOrWhiteSpace(request.Bodega) ? "Bodega Central" : request.Bodega.Trim(),
+            Activo = request.Activo
         };
+
         private static ProductoDto MapToDto(Producto p) => new()
         {
             Id = p.Id,
@@ -97,6 +104,7 @@ namespace Sagrisa.Application.Services
             Nombre = p.Nombre,
             Descripcion = p.Descripcion,
             Familia = p.Familia,
+            Division = p.Division,
             Presentacion = p.Presentacion,
             Precio = p.Precio,
             Stock = p.Stock,

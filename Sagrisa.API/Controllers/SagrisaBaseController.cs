@@ -11,6 +11,8 @@ namespace Sagrisa.API.Controllers
         protected string? CurrentUserDui => User.FindFirst("dui")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         protected string? CurrentUserRole => User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value;
         protected string? CurrentUserCodVendedor => User.FindFirst("codVendedor")?.Value;
+        protected string? CurrentUserDivision => User.FindFirst("division")?.Value ?? User.FindFirst("area")?.Value;
+        protected string? CurrentUserPais => User.FindFirst("pais")?.Value;
         protected Guid? CurrentUserId => Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value, out var id) ? id : null;
 
         protected IActionResult HandleResponse<T>(ApiResponse<T> response)

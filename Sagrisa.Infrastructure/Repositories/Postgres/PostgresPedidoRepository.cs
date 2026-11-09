@@ -29,7 +29,6 @@ public sealed class PostgresPedidoRepository(SagrisaDbContext db) : IPedidoRepos
         if (pedido.Id == Guid.Empty) pedido.Id = Guid.NewGuid();
         foreach (var detalle in pedido.Detalles) detalle.OrderId = pedido.Id;
         // SaveChangesAsync ya usa una transacción atómica para este único agregado.
-        // Evitamos BEGIN/COMMIT manual porque la cadena de Supabase usa pooler.
         db.Pedidos.Add(pedido);
         await db.SaveChangesAsync(cancellationToken);
         return pedido;

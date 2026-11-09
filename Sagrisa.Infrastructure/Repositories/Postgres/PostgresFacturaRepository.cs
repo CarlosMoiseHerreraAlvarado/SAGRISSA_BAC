@@ -43,7 +43,7 @@ public sealed class PostgresFacturaRepository(SagrisaDbContext db) : IFacturaRep
     {
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var factura = await db.Facturas
-            .FromSqlInterpolated($"select * from public.facturas where id = {facturaId} for update")
+            .FromSqlInterpolated($"select * from sagrisa.facturas where id = {facturaId} for update")
             .SingleOrDefaultAsync(cancellationToken);
 
         if (factura is null)

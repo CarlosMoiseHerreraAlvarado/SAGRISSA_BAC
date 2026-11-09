@@ -22,9 +22,9 @@ public sealed class PostgresClienteRepository(SagrisaDbContext db) : IClienteRep
         {
             var value = query.Trim();
             source = source.Where(x =>
-                EF.Functions.ILike(x.NomCliente, $"%{value}%") ||
-                EF.Functions.ILike(x.CodCliente, $"%{value}%") ||
-                (x.Ciudad != null && EF.Functions.ILike(x.Ciudad, $"%{value}%")));
+                EF.Functions.Like(x.NomCliente, $"%{value}%") ||
+                EF.Functions.Like(x.CodCliente, $"%{value}%") ||
+                (x.Ciudad != null && EF.Functions.Like(x.Ciudad, $"%{value}%")));
         }
 
         var total = await source.CountAsync(cancellationToken);

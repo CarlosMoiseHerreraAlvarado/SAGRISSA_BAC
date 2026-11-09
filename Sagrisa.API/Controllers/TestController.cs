@@ -19,7 +19,7 @@ namespace Sagrisa.API.Controllers
                 Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
                 Version = "1.2.0",
                 Platform = ".NET 8 LTS - Clean Architecture",
-                Integration = "SAGRISA PWA + Supabase + Dynamics ERP"
+                Integration = "SAGRISA PWA + PostgreSQL administrado en Supabase"
             };
 
             return Ok(ApiResponse<object>.Ok(statusInfo, "API SAGRISA funcionando correctamente"));

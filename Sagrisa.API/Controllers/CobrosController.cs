@@ -78,10 +78,15 @@ public sealed class CobrosController(
         if (!Enum.TryParse<PaymentStatus>(request.Status, true, out var status)) return BadRequest(new { success = false, message = "Estado de cobro inválido." });
         if (status == PaymentStatus.Applied && cobro.Status != PaymentStatus.Applied)
         {
-            if (!await facturaRepository.AplicarPagoAsync(cobro.FacturaId, cobro.Monto, cancellationToken)) return BadRequest(new { success = false, message = "No se pudo aplicar el pago a la factura." });
-            await clienteRepository.ActualizarDeudaAsync(cobro.CodCliente, cobro.Monto, cancellationToken);
+            var applied = await cobroRepository.AplicarAsync(id, cancellationToken);
+            if (applied is null) return BadRequest(new { success = false, message = "No se pudo aplicar el pago a la factura." });
+            cobro = applied;
         }
-        if (!await cobroRepository.ActualizarEstadoAsync(id, status, cancellationToken)) return NotFound(new { success = false, message = "Cobro no encontrado." });
+        else if (status != PaymentStatus.Applied && cobro.Status == PaymentStatus.Applied)
+        {
+            return Conflict(new { success = false, message = "Un cobro aplicado no puede revertirse desde este endpoint." });
+        }
+        if (status != PaymentStatus.Applied && !await cobroRepository.ActualizarEstadoAsync(id, status, cancellationToken)) return NotFound(new { success = false, message = "Cobro no encontrado." });
         cobro.Status = status;
         return Ok(new { success = true, message = "Estado de cobro actualizado.", data = MapCobro(cobro) });
     }

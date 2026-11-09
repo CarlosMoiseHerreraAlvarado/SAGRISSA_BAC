@@ -79,19 +79,6 @@ Content-Type: application/json
   ]
 }
 
-### 7. Webhook de Supabase (Sincronización de Pedido)
-POST {{Sagrisa.API_HostAddress}}/api/webhooks/supabase/order-created
-X-Webhook-Secret: sagrissa-webhook-secret-2026
-Content-Type: application/json
-
-{
-  "type": "INSERT",
-  "table": "orders",
-  "schema": "public",
-  "record": {
-    "numPedido": "00012345",
-    "codCliente": "C001",
-    "codVendedor": "GTCMARCOS",
-    "totalPedido": 262.50
-  }
-}
+### Health check de PostgreSQL/Supabase
+GET {{Sagrisa.API_HostAddress}}/health
+Accept: application/json

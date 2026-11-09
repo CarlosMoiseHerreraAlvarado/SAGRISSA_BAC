@@ -5,7 +5,6 @@ using Sagrisa.Application.DTOs.Common;
 using Sagrisa.Application.DTOs.Facturas;
 using Sagrisa.Application.DTOs.Pedidos;
 using Sagrisa.Application.DTOs.Productos;
-using Sagrisa.Application.DTOs.Webhooks;
 using Sagrisa.Domain.Common;
 
 namespace Sagrisa.Application.Interfaces.Services
@@ -45,9 +44,4 @@ namespace Sagrisa.Application.Interfaces.Services
         Task<ApiResponse<PedidoDetalladoResponseDto>> ObtenerPorNumeroParaUsuarioAsync(string numero, string? rol, string? dui, Guid? userId, string? codVendedor, CancellationToken cancellationToken = default);
     }
 
-    public interface ISupabaseSyncService
-    {
-        Task<ApiResponse<SyncResultDto>> ProcesarWebhookPedidoAsync(SupabaseWebhookPayload<PedidoEncabezadoDto> payload, CancellationToken cancellationToken = default);
-        Task<ApiResponse<SyncResultDto>> ProcesarWebhookCobroAsync(SupabaseWebhookPayload<CobroDto> payload, CancellationToken cancellationToken = default);
-    }
 }

@@ -55,6 +55,13 @@ public class PedidoService : IPedidoService
         if (request.Detalles.Any(x => x.Cantidad <= 0)) return ApiResponse<PedidoDetalladoResponseDto>.Fail("La cantidad de cada producto debe ser mayor que cero.");
         if (request.Detalles.Any(x => x.PrecioUnitario.HasValue && x.PrecioUnitario.Value < 0)) return ApiResponse<PedidoDetalladoResponseDto>.Fail("El precio unitario no puede ser negativo.");
 
+        if (request.Id.HasValue)
+        {
+            var existing = await _pedidoRepository.ObtenerPorIdAsync(request.Id.Value, cancellationToken);
+            if (existing is not null)
+                return ApiResponse<PedidoDetalladoResponseDto>.Ok(MapToDetalladoResponseDto(existing), "El pedido ya estaba registrado.");
+        }
+
         var cliente = await _clienteRepository.ObtenerPorCodigoAsync(request.CodCliente.Trim(), cancellationToken);
         if (cliente is null) return ApiResponse<PedidoDetalladoResponseDto>.Fail($"El cliente '{request.CodCliente}' no existe.");
         if (cliente.EstaInactivo) return ApiResponse<PedidoDetalladoResponseDto>.Fail($"El cliente '{request.CodCliente}' está inactivo.");

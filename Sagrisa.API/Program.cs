@@ -28,6 +28,8 @@ if (builder.Environment.IsProduction())
         throw new InvalidOperationException("JwtSettings:Issuer y JwtSettings:Audience son obligatorios en producción.");
     if (string.Equals(databaseProvider, "InMemory", StringComparison.OrdinalIgnoreCase))
         throw new InvalidOperationException("La API no puede usar Database:Provider=InMemory en producción.");
+    if (!string.Equals(databaseProvider, "Postgres", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("Producción requiere Database:Provider=Postgres.");
 }
 var key = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
@@ -64,16 +66,18 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         var configured = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+        if (!builder.Environment.IsDevelopment() && configured.Length == 0)
+            throw new InvalidOperationException("Cors:AllowedOrigins debe configurarse en staging y producción.");
         var origins = configured.Length > 0
             ? configured
-            : ["https://sagrissa.vercel.app", "http://localhost:5173", "http://127.0.0.1:5173"];
+            : ["http://localhost:5173", "http://127.0.0.1:5173"];
         policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
     });
 });
 
-// 5. Health checks para Azure App Service y pruebas del prototipo.
+// 5. Health check de PostgreSQL/Supabase y pruebas del prototipo.
 var healthChecks = builder.Services.AddHealthChecks();
-if (!string.Equals(databaseProvider, "InMemory", StringComparison.OrdinalIgnoreCase)) healthChecks.AddCheck<SupabaseHealthCheck>("supabase-database");
+if (!string.Equals(databaseProvider, "InMemory", StringComparison.OrdinalIgnoreCase)) healthChecks.AddCheck<PostgresHealthCheck>("postgres-database");
 
 // 6. Swagger con soporte de Authorization Bearer Token
 builder.Services.AddEndpointsApiExplorer();
@@ -83,7 +87,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "SAGRISA API",
         Version = "v1",
-        Description = "API de Integración y Servicios Comerciales SAGRISA (PWA + Supabase + Dynamics GP)"
+        Description = "API de Integración y Servicios Comerciales SAGRISA (PWA + PostgreSQL administrado en Supabase)"
     });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -113,7 +117,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// 7. Manejo de encabezados proxy de Azure App Service.
+// 7. Manejo de encabezados proxy del hosting de la API.
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto

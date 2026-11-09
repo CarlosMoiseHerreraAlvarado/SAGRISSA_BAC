@@ -15,6 +15,7 @@ namespace Sagrisa.Infrastructure.Repositories
                 Nombre = "Aceite Vegetal 1L",
                 Descripcion = "Aceite vegetal 100% puro para cocina",
                 Familia = "Abarrotes",
+                Division = "Agrícola",
                 Presentacion = "Unidad",
                 Precio = 10.50m,
                 Stock = 250,
@@ -28,6 +29,7 @@ namespace Sagrisa.Infrastructure.Repositories
                 Nombre = "Arroz Premium 5lb",
                 Descripcion = "Arroz grano entero seleccionado",
                 Familia = "Granos Básicos",
+                Division = "Agrícola",
                 Presentacion = "Bolsa",
                 Precio = 10.50m,
                 Stock = 500,
@@ -41,6 +43,7 @@ namespace Sagrisa.Infrastructure.Repositories
                 Nombre = "Cafe Molido 1lb",
                 Descripcion = "Café arábica de altura tostado medio",
                 Familia = "Bebidas",
+                Division = "Industrial",
                 Presentacion = "Paquete",
                 Precio = 8.75m,
                 Stock = 120,
@@ -54,6 +57,7 @@ namespace Sagrisa.Infrastructure.Repositories
                 Nombre = "Jabon en Barra",
                 Descripcion = "Jabón multiusos para lavado",
                 Familia = "Limpieza",
+                Division = "Veterinaria",
                 Presentacion = "Unidad",
                 Precio = 5.78m,
                 Stock = 300,
@@ -67,6 +71,7 @@ namespace Sagrisa.Infrastructure.Repositories
                 Nombre = "Producto Descontinuado",
                 Descripcion = "Item fuera de catalogo",
                 Familia = "Varios",
+                Division = "Taller",
                 Presentacion = "Caja",
                 Precio = 15.00m,
                 Stock = 0,
@@ -145,7 +150,7 @@ namespace Sagrisa.Infrastructure.Repositories
             if (current is null) return Task.FromResult<Producto?>(null);
             current.Nombre = producto.Nombre; current.Descripcion = producto.Descripcion; current.Familia = producto.Familia;
             current.Presentacion = producto.Presentacion; current.Precio = producto.Precio; current.Stock = producto.Stock;
-            current.Bodega = producto.Bodega; current.Activo = producto.Activo;
+            current.Bodega = producto.Bodega; current.Division = producto.Division; current.Activo = producto.Activo;
             return Task.FromResult<Producto?>(current);
         }
     }

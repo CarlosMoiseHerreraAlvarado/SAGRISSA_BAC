@@ -1,11 +1,11 @@
-# 🚀 SAGRISA API — Sistema de Gestión REST & Sincronización ERP
+# 🚀 SAGRISA API — Sistema de Gestión REST sobre PostgreSQL/Supabase
 
 [![.NET 8 LTS](https://img.shields.io/badge/.NET-8.0_LTS-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-0052FF?style=for-the-badge)](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures)
 [![Security](https://img.shields.io/badge/Security-JWT_Bearer_+_BCrypt-green?style=for-the-badge)](https://jwt.io/)
 [![Tests](https://img.shields.io/badge/Unit_Tests-19_Passed-success?style=for-the-badge)](#-cobertura-de-pruebas-unitarias)
 
-Backend corporativo desarrollado bajo estándares modernos con **ASP.NET Core Web API (.NET 8 LTS)** para el ecosistema comercial de **SAGRISA**, proveyendo servicios de autenticación segura (JWT + BCrypt), lógica de negocio desacoplada, gestión de pedidos/cartera y endpoints de sincronización bidireccional (*Webhooks*) con **Supabase** y **Dynamics GP ERP**.
+Backend corporativo desarrollado con **ASP.NET Core Web API (.NET 8 LTS)** para el ecosistema comercial de **SAGRISA**, con autenticación segura (JWT + BCrypt), lógica de negocio desacoplada, gestión de pedidos/cartera y persistencia operativa en **PostgreSQL administrado por Supabase**.
 
 ---
 
@@ -62,16 +62,18 @@ Sagrisa (Solución)
 * `GET /api/pedidos/{numero}` → Desglose completo de encabezado y líneas de detalle de un pedido.
 * `POST /api/pedidos` → Registro atómico de nuevos pedidos con validación de cliente, bloqueo comercial e inventario.
 
-### ⚡ 5. Sincronización y Webhooks Supabase (`/api/webhooks`)
-* `POST /api/webhooks/supabase/order-created` → Recibe eventos de inserción de pedidos desde PostgreSQL / Supabase y procesa el correlativo fiscal hacia Dynamics GP.
-* `POST /api/webhooks/supabase/payment-created` → Recibe registros de cobros con firmas/comprobantes y actualiza el saldo de facturas y cartera.
+### 💳 5. Cobros, aprobaciones y reportes
+* `GET/POST /api/cobros` → Consulta y registra cobros pendientes de aprobación.
+* `PATCH /api/cobros/{id}/status` → Aplica un cobro con actualización atómica de factura y cartera.
+* `GET /api/approvals` y `POST /api/approvals/{id}/decision` → Gestiona aprobaciones almacenadas en PostgreSQL.
+* `GET /api/reports` y `GET /api/reports/{id}/download` → Genera reportes a partir de registros reales.
 
 ### 👥 6. Administración de Usuarios (`/api/usuarios`) `[Authorize(Roles = "Admin,Director,Gerente")]`
 * `GET /api/usuarios` → Listado paginado de usuarios (sin exposición de claves).
 * `GET /api/usuarios/{dui}` → Perfil operativo por documento de identidad.
 
 ### 🩺 7. Diagnóstico & Health Probes
-* `GET /health` → Probe nativo para Azure App Service.
+* `GET /health` → Comprueba la conectividad de la API con PostgreSQL.
 * `GET /api/test` → Estado general del entorno y metadatos de integración.
 
 ---
@@ -92,6 +94,8 @@ dotnet test Sagrisa.sln
 ---
 
 ## 🛠️ Ejecución Local
+
+La API usa PostgreSQL por defecto. Configura una cadena de conexión en `ConnectionStrings:Postgres` o mediante la variable `ConnectionStrings__Postgres`. Para el esquema y los permisos de Supabase consulta [`database/supabase/README.md`](database/supabase/README.md).
 
 ```bash
 # Restaurar dependencias y compilar

@@ -57,7 +57,10 @@ namespace Sagrisa.Infrastructure.Security
                 new("role", usuario.Rol),
                 new(ClaimTypes.Role, usuario.Rol),
                 new("codVendedor", usuario.CodVendedor ?? string.Empty),
-                new("email", usuario.Email ?? string.Empty)
+                new("email", usuario.Email ?? string.Empty),
+                new("division", usuario.Division ?? string.Empty),
+                new("area", usuario.Division ?? string.Empty),
+                new("pais", usuario.Pais ?? string.Empty)
             };
 
             var expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);

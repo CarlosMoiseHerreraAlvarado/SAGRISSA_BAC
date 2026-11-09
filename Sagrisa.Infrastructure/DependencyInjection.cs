@@ -21,27 +21,30 @@ namespace Sagrisa.Infrastructure
         {
             // Opciones de configuracion
             services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
-            services.Configure<SupabaseSettings>(configuration.GetSection(SupabaseSettings.SectionName));
-
             var databaseProvider = configuration["Database:Provider"] ?? "Postgres";
             if (string.Equals(databaseProvider, "InMemory", StringComparison.OrdinalIgnoreCase))
             {
                 RegisterInMemoryRepositories(services);
             }
-            else
+            else if (string.Equals(databaseProvider, "Postgres", StringComparison.OrdinalIgnoreCase))
             {
-                var connectionString = configuration.GetConnectionString("Supabase");
+                var connectionString = configuration.GetConnectionString("Postgres");
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {
                     throw new InvalidOperationException(
-                        "Falta ConnectionStrings:Supabase. Configure la cadena PostgreSQL de Supabase antes de iniciar la API.");
+                        "Falta ConnectionStrings:Postgres. Configure la cadena SSL de Supabase antes de iniciar la API.");
                 }
 
                 services.AddDbContext<SagrisaDbContext>(options =>
-                    options.UseNpgsql(connectionString, npgsql =>
-                        npgsql.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), null)));
+                    options.UseNpgsql(connectionString, postgres =>
+                        postgres.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), null)));
 
                 RegisterPostgresRepositories(services);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Proveedor de base de datos no soportado: '{databaseProvider}'. Use Postgres o InMemory únicamente para pruebas.");
             }
 
             // Servicios de Seguridad
@@ -53,7 +56,6 @@ namespace Sagrisa.Infrastructure
             services.AddScoped<IClienteService, ClienteService>();
             services.AddScoped<IProductoService, ProductoService>();
             services.AddScoped<IPedidoService, PedidoService>();
-            services.AddScoped<ISupabaseSyncService, SupabaseSyncService>();
 
             return services;
         }
@@ -69,6 +71,7 @@ namespace Sagrisa.Infrastructure
             services.AddScoped<IAprobacionRepository, AprobacionRepository>();
             services.AddScoped<IAuditEventRepository, AuditEventRepository>();
             services.AddScoped<IWebhookEventRepository, WebhookEventRepository>();
+            services.AddScoped<IMetaRepository, EmptyMetaRepository>();
         }
 
         private static void RegisterPostgresRepositories(IServiceCollection services)
@@ -82,6 +85,7 @@ namespace Sagrisa.Infrastructure
             services.AddScoped<IAprobacionRepository, PostgresAprobacionRepository>();
             services.AddScoped<IAuditEventRepository, PostgresAuditEventRepository>();
             services.AddScoped<IWebhookEventRepository, PostgresWebhookEventRepository>();
+            services.AddScoped<IMetaRepository, PostgresMetaRepository>();
         }
     }
 }

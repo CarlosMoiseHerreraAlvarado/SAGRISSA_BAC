@@ -56,6 +56,13 @@ namespace Sagrisa.Infrastructure.Repositories
             return Task.FromResult(cobro);
         }
 
+        public Task<Cobro?> AplicarAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var cobro = _cobros.FirstOrDefault(c => c.Id == id);
+            if (cobro is not null) cobro.Status = PaymentStatus.Applied;
+            return Task.FromResult(cobro);
+        }
+
         public Task<bool> ActualizarEstadoAsync(Guid id, PaymentStatus status, CancellationToken cancellationToken = default)
         {
             var cobro = _cobros.FirstOrDefault(c => c.Id == id);

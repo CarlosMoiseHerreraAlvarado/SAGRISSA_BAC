@@ -18,9 +18,9 @@ public sealed class PostgresUsuarioRepository(SagrisaDbContext db) : IUsuarioRep
         {
             var value = query.Trim();
             source = source.Where(x =>
-                EF.Functions.ILike(x.Nombre, $"%{value}%") ||
-                EF.Functions.ILike(x.Dui, $"%{value}%") ||
-                (x.CodVendedor != null && EF.Functions.ILike(x.CodVendedor, $"%{value}%")));
+                EF.Functions.Like(x.Nombre, $"%{value}%") ||
+                EF.Functions.Like(x.Dui, $"%{value}%") ||
+                (x.CodVendedor != null && EF.Functions.Like(x.CodVendedor, $"%{value}%")));
         }
 
         var total = await source.CountAsync(cancellationToken);

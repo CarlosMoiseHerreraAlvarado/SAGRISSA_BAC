@@ -24,9 +24,9 @@ public sealed class PostgresProductoRepository(SagrisaDbContext db) : IProductoR
         {
             var value = query.Trim();
             source = source.Where(x =>
-                EF.Functions.ILike(x.Nombre, $"%{value}%") ||
-                EF.Functions.ILike(x.Codigo, $"%{value}%") ||
-                (x.Descripcion != null && EF.Functions.ILike(x.Descripcion, $"%{value}%")));
+                EF.Functions.Like(x.Nombre, $"%{value}%") ||
+                EF.Functions.Like(x.Codigo, $"%{value}%") ||
+                (x.Descripcion != null && EF.Functions.Like(x.Descripcion, $"%{value}%")));
         }
 
         var total = await source.CountAsync(cancellationToken);
@@ -65,7 +65,7 @@ public sealed class PostgresProductoRepository(SagrisaDbContext db) : IProductoR
         if (current is null) return null;
         current.Nombre = producto.Nombre; current.Descripcion = producto.Descripcion; current.Familia = producto.Familia;
         current.Presentacion = producto.Presentacion; current.Precio = producto.Precio; current.Stock = producto.Stock;
-        current.Bodega = producto.Bodega; current.Activo = producto.Activo;
+        current.Bodega = producto.Bodega; current.Division = producto.Division; current.Activo = producto.Activo;
         await db.SaveChangesAsync(cancellationToken);
         return current;
     }

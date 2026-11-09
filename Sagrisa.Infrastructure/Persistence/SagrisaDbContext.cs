@@ -21,9 +21,11 @@ public sealed class SagrisaDbContext : DbContext
     public DbSet<Aprobacion> Aprobaciones => Set<Aprobacion>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<WebhookEvent> WebhookEvents => Set<WebhookEvent>();
+    public DbSet<MetaComercial> MetasComerciales => Set<MetaComercial>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("sagrisa");
         ConfigureUsuario(modelBuilder.Entity<Usuario>());
         ConfigureCliente(modelBuilder.Entity<Cliente>());
         ConfigureProducto(modelBuilder.Entity<Producto>());
@@ -32,6 +34,7 @@ public sealed class SagrisaDbContext : DbContext
         ConfigureFactura(modelBuilder.Entity<Factura>());
         ConfigureCobro(modelBuilder.Entity<Cobro>());
         ConfigureAprobacion(modelBuilder.Entity<Aprobacion>());
+        ConfigureMetaComercial(modelBuilder.Entity<MetaComercial>());
     }
 
     private static void ConfigureUsuario(EntityTypeBuilder<Usuario> entity)
@@ -53,7 +56,7 @@ public sealed class SagrisaDbContext : DbContext
         entity.Property(x => x.GerenciadoPor).HasColumnName("gerenciado_por");
         entity.Property(x => x.SupervisadoPor).HasColumnName("supervisado_por");
         entity.Property(x => x.Rol).HasColumnName("rol").IsRequired();
-        entity.Property(x => x.IsActive).HasColumnName("is_active");
+        entity.Property(x => x.IsActive).HasColumnName("activo");
         entity.Property(x => x.IsOfflineCapable).HasColumnName("is_offline_capable");
         entity.Property(x => x.CreatedAt).HasColumnName("created_at");
         entity.Property(x => x.UpdatedAt).HasColumnName("updated_at");
@@ -99,6 +102,7 @@ public sealed class SagrisaDbContext : DbContext
         entity.Property(x => x.Nombre).HasColumnName("nombre").IsRequired();
         entity.Property(x => x.Descripcion).HasColumnName("descripcion");
         entity.Property(x => x.Familia).HasColumnName("familia").IsRequired();
+        entity.Property(x => x.Division).HasColumnName("division");
         entity.Property(x => x.Presentacion).HasColumnName("presentacion").IsRequired();
         entity.Property(x => x.Precio).HasColumnName("precio").HasPrecision(18, 2);
         entity.Property(x => x.Stock).HasColumnName("stock");
@@ -259,7 +263,9 @@ public sealed class SagrisaDbContext : DbContext
         entity.Property(x => x.EntityId).HasColumnName("entity_id");
         entity.Property(x => x.BeforeData).HasColumnName("before_data").HasColumnType("jsonb");
         entity.Property(x => x.AfterData).HasColumnName("after_data").HasColumnType("jsonb");
-        entity.Property(x => x.IpAddress).HasColumnName("ip_address");
+        entity.Property(x => x.IpAddress).HasColumnName("ip_address").HasColumnType("inet").HasConversion(
+            value => value == null ? null : value.ToString(),
+            value => string.IsNullOrWhiteSpace(value) ? null : System.Net.IPAddress.Parse(value));
         entity.Property(x => x.UserAgent).HasColumnName("user_agent");
         entity.Property(x => x.CreatedAt).HasColumnName("created_at");
     }
@@ -279,5 +285,20 @@ public sealed class SagrisaDbContext : DbContext
         entity.Property(x => x.ProcessedAt).HasColumnName("processed_at");
         entity.Property(x => x.LastError).HasColumnName("last_error");
         entity.HasIndex(x => new { x.Source, x.EventKey }).IsUnique();
+    }
+
+    private static void ConfigureMetaComercial(EntityTypeBuilder<MetaComercial> entity)
+    {
+        entity.ToTable("metas_comerciales");
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Id).HasColumnName("id");
+        entity.Property(x => x.PeriodoTipo).HasColumnName("periodo_tipo").IsRequired();
+        entity.Property(x => x.PeriodoInicio).HasColumnName("periodo_inicio").HasColumnType("date");
+        entity.Property(x => x.PeriodoFin).HasColumnName("periodo_fin").HasColumnType("date");
+        entity.Property(x => x.DivisionCodigo).HasColumnName("division_codigo");
+        entity.Property(x => x.VendedorCodigo).HasColumnName("vendedor_codigo");
+        entity.Property(x => x.Proyeccion).HasColumnName("proyeccion").HasPrecision(19, 4);
+        entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+        entity.HasIndex(x => new { x.PeriodoTipo, x.PeriodoInicio, x.DivisionCodigo, x.VendedorCodigo }).IsUnique();
     }
 }
