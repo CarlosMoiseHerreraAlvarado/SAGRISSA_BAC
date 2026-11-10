@@ -486,3 +486,8 @@ $RECYCLE.BIN/
 # Local temporary and generated folders
 output/
 tmp/
+
+# Database backup files and extracted dumps
+*.bak
+database/sqlserver/movil_extracted/
+

@@ -16,6 +16,7 @@ namespace Sagrisa.Domain.Entities
         public string? FirmaUrl { get; set; }
         public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
         public string? Notas { get; set; }
+        public string? Pais { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

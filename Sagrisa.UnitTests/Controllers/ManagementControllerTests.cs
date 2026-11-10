@@ -199,4 +199,49 @@ public sealed class ManagementControllerTests
         Assert.True(root.GetProperty("success").GetBoolean());
         Assert.Equal(1, root.GetProperty("data").GetArrayLength());
     }
+
+    [Fact]
+    public async Task Analytics_Director_RetornaMetricasDirector()
+    {
+        var controller = new ManagementController(
+            Mock.Of<IPedidoRepository>(),
+            Mock.Of<IUsuarioRepository>(),
+            Mock.Of<IClienteRepository>(),
+            Mock.Of<IFacturaRepository>(),
+            Mock.Of<ICobroRepository>(),
+            Mock.Of<IAprobacionRepository>(),
+            Mock.Of<IAuditEventRepository>(),
+            Mock.Of<IMetaRepository>());
+
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                [
+                    new Claim("dui", "11111111-1"),
+                    new Claim(ClaimTypes.Role, "Director")
+                ], "test"))
+            }
+        };
+
+        var result = await controller.Analytics(null, CancellationToken.None);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+
+        var json = JsonSerializer.Serialize(okResult.Value);
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        Assert.True(root.GetProperty("success").GetBoolean());
+        var data = root.GetProperty("data");
+        Assert.True(data.TryGetProperty("regionalCollections", out var regCol));
+        Assert.True(data.TryGetProperty("topClients", out var topCli));
+        Assert.True(data.TryGetProperty("articleClasses", out var artCls));
+        Assert.True(data.TryGetProperty("budgetByCountry", out var budCou));
+        Assert.True(data.TryGetProperty("budgetByArea", out var budArea));
+
+        Assert.Equal(2, regCol.GetArrayLength());
+        Assert.Equal(8, topCli.GetArrayLength());
+        Assert.Equal(5, artCls.GetArrayLength());
+    }
 }

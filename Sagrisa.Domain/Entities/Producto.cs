@@ -9,6 +9,9 @@ namespace Sagrisa.Domain.Entities
         public string? Descripcion { get; set; }
         public string Familia { get; set; } = "General";
         public string? Division { get; set; }
+        public string? Clase { get; set; }
+        public DateTime? FechaVencimiento { get; set; }
+        public string? Lote { get; set; }
         public string Presentacion { get; set; } = "Unidad";
         public decimal Precio { get; set; }
         public int Stock { get; set; } = 0;
