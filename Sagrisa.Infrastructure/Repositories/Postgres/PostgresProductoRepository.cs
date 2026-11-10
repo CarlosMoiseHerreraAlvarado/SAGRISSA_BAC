@@ -65,7 +65,7 @@ public sealed class PostgresProductoRepository(SagrisaDbContext db) : IProductoR
         if (current is null) return null;
         current.Nombre = producto.Nombre; current.Descripcion = producto.Descripcion; current.Familia = producto.Familia;
         current.Presentacion = producto.Presentacion; current.Precio = producto.Precio; current.Stock = producto.Stock;
-        current.Bodega = producto.Bodega; current.Division = producto.Division; current.Activo = producto.Activo;
+        current.Bodega = producto.Bodega; current.Division = producto.Division; current.Activo = producto.Activo; current.Clase = producto.Clase; current.FechaVencimiento = producto.FechaVencimiento; current.Lote = producto.Lote;
         await db.SaveChangesAsync(cancellationToken);
         return current;
     }

@@ -103,6 +103,9 @@ public sealed class SagrisaDbContext : DbContext
         entity.Property(x => x.Descripcion).HasColumnName("descripcion");
         entity.Property(x => x.Familia).HasColumnName("familia").IsRequired();
         entity.Property(x => x.Division).HasColumnName("division");
+        entity.Property(x => x.Clase).HasColumnName("clase");
+        entity.Property(x => x.FechaVencimiento).HasColumnName("fecha_vencimiento");
+        entity.Property(x => x.Lote).HasColumnName("lote");
         entity.Property(x => x.Presentacion).HasColumnName("presentacion").IsRequired();
         entity.Property(x => x.Precio).HasColumnName("precio").HasPrecision(18, 2);
         entity.Property(x => x.Stock).HasColumnName("stock");
@@ -217,6 +220,7 @@ public sealed class SagrisaDbContext : DbContext
         entity.Property(x => x.NumFactura).HasColumnName("num_factura").IsRequired();
         entity.Property(x => x.CodCliente).HasColumnName("cod_cliente").IsRequired();
         entity.Property(x => x.CodVendedor).HasColumnName("cod_vendedor");
+        entity.Property(x => x.Pais).HasColumnName("pais");
         entity.Property(x => x.Monto).HasColumnName("monto").HasPrecision(18, 2);
         entity.Property(x => x.MetodoPago).HasColumnName("metodo_pago").HasConversion<short>();
         entity.Property(x => x.Referencia).HasColumnName("referencia");

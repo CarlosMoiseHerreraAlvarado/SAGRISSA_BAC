@@ -95,9 +95,13 @@ public sealed class ManagementController(
             .ToList();
 
         // Cobros Regionales por País (dbo.SAGListadoCobros_SV / dbo.SAGListadoCobros_GT)
+        static bool IsGtPayment(Sagrisa.Domain.Entities.Cobro p) =>
+            string.Equals(p.Pais, "GT", StringComparison.OrdinalIgnoreCase) ||
+            (string.IsNullOrWhiteSpace(p.Pais) && p.CodCliente.StartsWith("GT", StringComparison.OrdinalIgnoreCase));
+
         var totalCollectedAmount = payments.Sum(x => x.Monto);
-        var svPaymentsAmount = payments.Where(p => string.Equals(p.Pais, "SV", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(p.Pais)).Sum(p => p.Monto);
-        var gtPaymentsAmount = payments.Where(p => string.Equals(p.Pais, "GT", StringComparison.OrdinalIgnoreCase)).Sum(p => p.Monto);
+        var gtPaymentsAmount = payments.Where(IsGtPayment).Sum(p => p.Monto);
+        var svPaymentsAmount = payments.Where(p => !IsGtPayment(p)).Sum(p => p.Monto);
         if (totalCollectedAmount == 0)
         {
             svPaymentsAmount = 685000m;
